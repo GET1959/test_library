@@ -1,5 +1,8 @@
 # test_library
 
+Приложение реализовано в соответствии с 
+техзаданием https://docs.google.com/document/d/17qE_QawFOssdRIaEBzTaN8N-SYmkhh7tdNOy3ZTwHz8/edit?tab=t.0
+
 Для запуска приложения необходимо:
 
 1. Создать файл .env в соответствии с файлом .env.sample
