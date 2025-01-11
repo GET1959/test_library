@@ -12,8 +12,6 @@ class Settings(BaseSettings):
     DB_NAME: str = os.getenv("POSTGRES_DB")
     DB_USER: str = os.getenv("POSTGRES_USER")
     DB_PASSWORD: str = os.getenv("POSTGRES_PASSWORD")
-    SECRET_KEY: str = os.getenv("SECRET_KEY")
-    ALGORITHM: str = os.getenv("ALGORITHM")
 
 
 settings = Settings()
