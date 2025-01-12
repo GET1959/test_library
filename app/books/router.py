@@ -9,7 +9,7 @@ router = APIRouter(prefix="/books")
 
 
 @router.post(
-    path="/books",
+    path="/",
     tags=["Книги"],
     status_code=status.HTTP_200_OK,
     summary="Добавление книги",
@@ -29,7 +29,7 @@ async def add_book(book: BookSch) -> dict:
 
 
 @router.get(
-    path="/books/",
+    path="/",
     tags=["Книги"],
     status_code=status.HTTP_200_OK,
     summary="Получение списка книг",
@@ -39,7 +39,7 @@ async def get_books() -> list[BookListSch]:
 
 
 @router.get(
-    path="/books/{id}/",
+    path="/{id}/",
     tags=["Книги"],
     status_code=status.HTTP_200_OK,
     summary="Получение информации о книге по id",
@@ -52,7 +52,7 @@ async def get_book_by_id(book_id: int) -> BookSch | dict:
 
 
 @router.put(
-    path="/authors/{id}/",
+    path="/{id}/",
     tags=["Книги"],
     status_code=status.HTTP_200_OK,
     summary="Обновление информации о книге",

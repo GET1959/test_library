@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, status
 
 from app.authors.core import AuthorDAO
 from app.authors.schemas import AuthorSch, AuthorListSch
@@ -7,7 +7,7 @@ router = APIRouter(prefix="/authors", tags=["Авторы"])
 
 
 @router.post(
-    path="/authors",
+    path="/",
     status_code=status.HTTP_200_OK,
     summary="Создание автора",
 )
@@ -20,7 +20,7 @@ async def add_author(author: AuthorSch) -> dict:
 
 
 @router.get(
-    path="/authors/",
+    path="/",
     status_code=status.HTTP_200_OK,
     summary="Получение списка авторов",
 )
@@ -29,20 +29,19 @@ async def get_authors() -> list[AuthorListSch]:
 
 
 @router.get(
-    path="/authors/{id}/",
+    path="/{id}/",
     status_code=status.HTTP_200_OK,
     summary="Получение информации об авторе по id",
 )
 async def get_author_by_id(author_id: int) -> AuthorSch | dict:
-    try:
-        result = await AuthorDAO.get_one_or_none_by_id(data_id=author_id)
-        return result
-    except:
+    result = await AuthorDAO.get_one_or_none_by_id(data_id=author_id)
+    if result is None:
         return {'message': f'Автор с ID {author_id} не найден!'}
+    return result
 
 
 @router.put(
-    path="/authors/{id}/",
+    path="/{id}/",
     status_code=status.HTTP_200_OK,
     summary="Обновление информации об авторе",
 )
