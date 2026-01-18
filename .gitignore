@@ -77,3 +77,4 @@ target/
 .env
 .idea/
 poetry.lock
+.continue/
