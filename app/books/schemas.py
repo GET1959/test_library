@@ -21,11 +21,11 @@ class BookListSch(BaseModel):
 
 class BorrowSchCreate(BaseModel):
     book_id: int = Field(..., description="ID книги")
+    user_id: int = Field(..., description="ID пользователя")
     issue_date: date = Field(..., description="Дата выдачи")
-
-
 class BorrowSch(BaseModel):
     book_id: int = Field(..., description="ID книги")
+    user_id: int = Field(..., description="ID пользователя")
     issue_date: date = Field(..., description="Дата выдачи")
     return_date: Optional[date] = Field(..., description="Дата возврата")
 
@@ -33,5 +33,7 @@ class BorrowSch(BaseModel):
 class BorrowListSch(BaseModel):
     id: int = Field(..., description="ID выдачи")
     book_id: int = Field(..., description="ID книги")
+    user_id: int = Field(..., description="ID пользователя")
     issue_date: date = Field(..., description="Дата выдачи")
     return_date: Optional[date] = Field(..., description="Дата возврата")
+

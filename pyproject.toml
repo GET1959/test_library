@@ -16,6 +16,10 @@ uvicorn = "^0.34.0"
 httpx = "^0.28.1"
 python-dotenv = "^1.0.1"
 
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+python-multipart = "^0.0.12"
+pydantic = {extras = ["email"], version = "^2.12.5"}
+passlib = {extras = ["argon2"], version = "^1.7.4"}
 
 [build-system]
 requires = ["poetry-core"]

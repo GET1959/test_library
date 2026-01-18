@@ -14,7 +14,7 @@ sys.path.insert(0, dirname(dirname(abspath(__file__))))
 from app.database import DATABASE_URL, Base
 from app.authors.models import Author
 from app.books.models import Book, Borrow
-
+from app.auth.models import User
 
 
 # this is the Alembic Config object, which provides

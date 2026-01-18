@@ -1,9 +1,11 @@
 from datetime import date
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Depends
 
 from app.authors.core import AuthorDAO
 from app.books.core import BookDAO, BorrowDAO
 from app.books.schemas import BookSch, BookListSch, BorrowSch, BorrowSchCreate, BorrowListSch
+from app.auth.models import User
+from app.auth.utils import get_current_active_user
 
 router = APIRouter(prefix="/books")
 
@@ -89,11 +91,17 @@ async def delete_book(book_id: int) -> dict:
     status_code=status.HTTP_200_OK,
     summary="Создание записи о выдаче книги",
 )
-async def add_borrow(borrow: BorrowSchCreate) -> dict:
+async def add_borrow(
+    borrow: BorrowSchCreate,
+    current_user: User = Depends(get_current_active_user)
+) -> dict:
+    # Add current user ID to the borrow request
+    borrow_data = borrow.dict()
+    borrow_data['user_id'] = current_user.id
     book_list = await BookDAO.get_all()
     book_id_list = [book.id for book in book_list if book.quantity_to_borrow > 0]
     if borrow.book_id in book_id_list:
-        result = await BorrowDAO.add(**borrow.dict())
+        result = await BorrowDAO.add(**borrow_data)
         if result:
             return {"message": "Выдача добавлена в список"}
         else:
@@ -141,3 +149,5 @@ async def close_borrow(
         return await BorrowDAO.get_one_or_none_by_id(data_id=borrow_id)
     else:
         return {'message': f'Книга с ID {borrow_id} не найдена!'}
+
+
