@@ -33,8 +33,11 @@ def custom_openapi():
             "bearerFormat": "JWT",
         }
     }
-    for path in openapi_schema["paths"].values():
-        for method in path.values():
+    public_paths = {"/auth/register", "/auth/login"}
+    for path, methods in openapi_schema["paths"].items():
+        if path in public_paths:
+            continue
+        for method in methods.values():
             if isinstance(method, dict):
                 method["security"] = [{"BearerAuth": []}]
     app.openapi_schema = openapi_schema

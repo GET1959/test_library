@@ -1,6 +1,6 @@
-from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from app.auth.models import User
 from app.auth.schemas import UserCreate, UserRead, UserLogin, Token
@@ -18,35 +18,42 @@ router = APIRouter(prefix="/auth", tags=["Authorization"])
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def register_user(user_data: UserCreate):
     async with async_session_maker() as session:
-        existing_user = await session.execute(
-            User.__table__.select().where(User.username == user_data.username)
-        )
-        if existing_user.scalar_one_or_none():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username already registered"
+        async with session.begin():
+            # Быстрая «оптимистичная» проверка для нормального UX с понятным detail.
+            # Реальная защита от гонки — IntegrityError ниже (unique-индексы).
+            if await session.scalar(
+                select(User).where(User.username == user_data.username)
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Username already registered",
+                )
+            if await session.scalar(
+                select(User).where(User.email == user_data.email)
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email already registered",
+                )
+
+            new_user = User(
+                username=user_data.username,
+                email=user_data.email,
+                hashed_password=get_password_hash(user_data.password),
             )
-        
-        existing_email = await session.execute(
-            User.__table__.select().where(User.email == user_data.email)
-        )
-        if existing_email.scalar_one_or_none():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
-            )
-        
-        # Create new user
-        hashed_password = get_password_hash(user_data.password)
-        new_user = User(
-            username=user_data.username,
-            email=user_data.email,
-            hashed_password=hashed_password,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc)
-        )
-        session.add(new_user)
-        await session.commit()
+            session.add(new_user)
+            try:
+                # flush пушит INSERT в БД внутри открытой транзакции.
+                # На уникальных индексах получим IntegrityError здесь, а не на commit,
+                # и можем превратить её в нормальный 400.
+                await session.flush()
+            except IntegrityError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Username or email already registered",
+                )
+
+        # session.begin() делает commit при выходе (если не было исключения).
         await session.refresh(new_user)
         return new_user
 

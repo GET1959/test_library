@@ -32,12 +32,11 @@ def get_password_hash(password: str) -> str:
 
 
 async def get_user_by_username(username: str, session: AsyncSession) -> Optional[User]:
-    user = await session.execute(
+    """Возвращает пользователя по username или None."""
+    result = await session.execute(
         select(User).where(User.username == username)
     )
-    user = user.scalar_one_or_none()
-    print(f"USER GOTTEN: {user}")
-    return user
+    return result.scalar_one_or_none()
 
 
 async def authenticate_user(username: str, password: str, session: AsyncSession) -> Optional[User]:
@@ -86,5 +85,8 @@ async def get_current_active_user(
     current_user: User = Depends(get_current_user)
 ) -> User:
     if not current_user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Inactive user",
+        )
     return current_user

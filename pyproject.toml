@@ -21,6 +21,16 @@ python-multipart = "^0.0.12"
 pydantic = {extras = ["email"], version = "^2.12.5"}
 passlib = {extras = ["argon2"], version = "^1.7.4"}
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+pytest-asyncio = "^0.25.0"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--no-header"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

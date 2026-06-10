@@ -1,4 +1,3 @@
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
 from sqlalchemy import update as sqlalchemy_update, delete as sqlalchemy_delete
 from app.database import async_session_maker
@@ -34,11 +33,8 @@ class BaseDAO:
             async with session.begin():
                 new_instance = cls.model(**values)
                 session.add(new_instance)
-                try:
-                    await session.commit()
-                except SQLAlchemyError as e:
-                    await session.rollback()
-                    raise e
+                await session.flush()
+            await session.refresh(new_instance)
             return new_instance
 
     @classmethod
@@ -52,31 +48,26 @@ class BaseDAO:
                     .execution_options(synchronize_session="fetch")
                 )
                 result = await session.execute(query)
-                try:
-                    await session.commit()
-                except SQLAlchemyError as e:
-                    await session.rollback()
-                    raise e
                 return result.rowcount
 
     @classmethod
     async def update_on_id(cls, instance_id, instance_data):
+        if hasattr(instance_data, "model_dump"):
+            values = instance_data.model_dump(exclude_unset=True)
+        elif isinstance(instance_data, dict):
+            values = instance_data
+        else:
+            raise TypeError("instance_data must be dict or Pydantic model")
+
         async with async_session_maker() as session:
             async with session.begin():
-                # instance_dict = instance_data if isinstance(instance_data, dict) else instance_data.model_dump(
-                #     exclude_unset=True).items()
                 query = (
                     sqlalchemy_update(cls.model)
                     .where(cls.model.id == instance_id)
-                    .values(instance_data.dict())
+                    .values(**values)
                     .execution_options(synchronize_session="fetch")
                 )
                 result = await session.execute(query)
-                try:
-                    await session.commit()
-                except SQLAlchemyError as e:
-                    await session.rollback()
-                    raise e
                 return result.rowcount
 
     @classmethod
@@ -88,9 +79,4 @@ class BaseDAO:
             async with session.begin():
                 query = sqlalchemy_delete(cls.model).filter_by(**filter_by)
                 result = await session.execute(query)
-                try:
-                    await session.commit()
-                except SQLAlchemyError as e:
-                    await session.rollback()
-                    raise e
                 return result.rowcount

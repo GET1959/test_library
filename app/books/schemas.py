@@ -19,15 +19,18 @@ class BookListSch(BaseModel):
     quantity_to_borrow: int = Field(..., description="Количество доступных экземпляров")
 
 
+class BookUpdateSch(BaseModel):
+    """Схема частичного обновления книги. Все поля опциональны."""
+    title: Optional[str] = Field(None, description="Название книги")
+    description: Optional[str] = Field(None, description="Краткое содержание книги")
+    author_id: Optional[int] = Field(None, description="ID Автора книги")
+    quantity_to_borrow: Optional[int] = Field(
+        None, description="Количество доступных экземпляров", ge=0
+    )
+
+
 class BorrowSchCreate(BaseModel):
     book_id: int = Field(..., description="ID книги")
-    user_id: int = Field(..., description="ID пользователя")
-    issue_date: date = Field(..., description="Дата выдачи")
-class BorrowSch(BaseModel):
-    book_id: int = Field(..., description="ID книги")
-    user_id: int = Field(..., description="ID пользователя")
-    issue_date: date = Field(..., description="Дата выдачи")
-    return_date: Optional[date] = Field(..., description="Дата возврата")
 
 
 class BorrowListSch(BaseModel):
@@ -35,5 +38,5 @@ class BorrowListSch(BaseModel):
     book_id: int = Field(..., description="ID книги")
     user_id: int = Field(..., description="ID пользователя")
     issue_date: date = Field(..., description="Дата выдачи")
-    return_date: Optional[date] = Field(..., description="Дата возврата")
+    return_date: Optional[date] = Field(None, description="Дата возврата")
 
