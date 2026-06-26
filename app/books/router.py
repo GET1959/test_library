@@ -136,13 +136,18 @@ async def add_borrow(
     borrow: BorrowSchCreate,
     current_user: User = Depends(get_current_active_user),
 ) -> BorrowListSch:
+    book = await BookDAO.get_one_or_none_by_id(data_id=borrow.book_id)
+    if book is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Книга с ID {borrow.book_id} не найдена",
+        )
     try:
         return await BorrowDAO.create_borrow(
             book_id=borrow.book_id,
             user_id=current_user.id,
         )
     except InsufficientCopiesError:
-        # Книга существует, но все экземпляры заняты — 409, а не 404.
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Книга с ID {borrow.book_id} недоступна для выдачи",
@@ -181,13 +186,27 @@ async def get_borrow_by_id(borrow_id: int) -> BorrowListSch:
     status_code=status.HTTP_200_OK,
     summary="Завершение выдачи",
 )
-async def close_borrow(borrow_id: int) -> BorrowListSch:
+async def close_borrow(
+    borrow_id: int,
+    current_user: User = Depends(get_current_active_user),
+) -> BorrowListSch:
+    borrow = await BorrowDAO.get_one_or_none_by_id(data_id=borrow_id)
+    if borrow is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Выдача с ID {borrow_id} не найдена",
+        )
+    if borrow.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Нет доступа к этой выдаче",
+        )
     try:
         return await BorrowDAO.close_borrow(instance_id=borrow_id)
     except BorrowNotFoundOrAlreadyClosedError:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Выдача с ID {borrow_id} не найдена или уже закрыта",
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Выдача с ID {borrow_id} уже закрыта",
         )
 
 

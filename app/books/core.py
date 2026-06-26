@@ -49,11 +49,7 @@ class BorrowDAO(BaseDAO):
                     issue_date=date.today(),
                 )
                 session.add(borrow)
-                try:
-                    await session.flush()
-                except SQLAlchemyError as e:
-                    await session.rollback()
-                    raise e
+                await session.flush()
                 await session.refresh(borrow)
                 return borrow
 

@@ -5,16 +5,16 @@ from pydantic import BaseModel, Field
 
 
 class BookSch(BaseModel):
-    title: str = Field(..., description="Название книги")
-    description: str = Field(..., description="Краткое содержание книги")
+    title: str = Field(..., min_length=1, description="Название книги")
+    description: Optional[str] = Field(None, description="Краткое содержание книги")
     author_id: int = Field(..., description="ID Автора книги")
-    quantity_to_borrow: int = Field(..., description="Количество доступных экземпляров")
+    quantity_to_borrow: int = Field(..., ge=0, description="Количество доступных экземпляров")
 
 
 class BookListSch(BaseModel):
     id: int = Field(..., description="ID книги")
     title: str = Field(..., description="Название книги")
-    description: str = Field(..., description="Краткое содержание книги")
+    description: Optional[str] = Field(None, description="Краткое содержание книги")
     author_id: int = Field(..., description="ID Автора книги")
     quantity_to_borrow: int = Field(..., description="Количество доступных экземпляров")
 
