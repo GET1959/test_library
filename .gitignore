@@ -78,3 +78,5 @@ target/
 .idea/
 poetry.lock
 .continue/
+.claude/settings.local.json
+.claude/memory/
